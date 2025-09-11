@@ -68,7 +68,7 @@ npm run preview
 
 ### Deployment
 
-To build and package your plugin for deployment:
+To build and package your extension for deployment:
 
 ```bash
 npm run deploy
@@ -86,7 +86,7 @@ You can find the package in the `releases` directory.
 Following endpoints are available. Permissions are possible per route. Types are documented in `ct-types.d.ts` (CustomModuleCreate, CustomModuleDataCategoryCreate, CustomModuleDataValueCreate)
 
 GET `/custommodules` get all extensions  
-GET `/custommodules/{pluginkey}` get an extensions by its key  
+GET `/custommodules/{extensionkey}` get an extensions by its key  
 GET `/custommodules/{moduleId}` get an extension by its ID
 
 GET `/custommodules/{moduleId}/customdatacategories`  
