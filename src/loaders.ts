@@ -27,6 +27,7 @@ const entryPointRegistry: Record<string, EntryPointLoader> = {
     welcome: () => import('./entry-points/welcome'),
     userInfo: () => import('./entry-points/user-info'),
     dataViewer: () => import('./entry-points/data-viewer'),
+    calendarAvailability: () => import('./entry-points/calendar-availability'),
 };
 
 /**

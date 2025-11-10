@@ -16,7 +16,8 @@
 export { renderExtension, KEY } from './main';
 
 // Types
-export type { ExtensionContext, EntryPoint } from './types/extension';
+export type { ExtensionContext, EntryPoint, CleanupFunction } from './types/extension';
+export type { ExtensionInstance } from './main';
 
 // Entry point loaders - work in both simple and advanced modes
 // In simple mode: Entry points are bundled, returned immediately
