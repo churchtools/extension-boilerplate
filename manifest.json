@@ -1,0 +1,44 @@
+{
+  "$schema": "./manifest.schema.json",
+  "name": "Extension Boilerplate",
+  "key": "extension-boilerplate",
+  "version": "1.0.0",
+  "description": "A boilerplate extension demonstrating ChurchTools extension capabilities",
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com",
+    "url": "https://your-website.com"
+  },
+  "homepage": "https://github.com/yourname/extension-boilerplate",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourname/extension-boilerplate.git"
+  },
+  "license": "MIT",
+  "image": "https://your-website.com/extension-icon.png",
+  "extensionPoints": [
+    {
+      "id": "main",
+      "entryPoint": "main",
+      "title": "Extension Module",
+      "description": "Main module with dashboard and features"
+    },
+    {
+      "id": "admin",
+      "entryPoint": "admin",
+      "title": "Extension Settings",
+      "description": "Configure extension settings"
+    },
+    {
+      "id": "calendar-dialog-availability",
+      "entryPoint": "calendarAvailability",
+      "title": "Calendar Availability",
+      "description": "Shows availability and suggests alternative times in calendar dialogs"
+    }
+  ],
+  "permissions": [
+    "read:calendar",
+    "read:persons"
+  ],
+  "minChurchToolsVersion": "3.0.0"
+}

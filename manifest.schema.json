@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ChurchTools Extension Manifest",
+  "description": "Manifest file for ChurchTools extensions",
+  "type": "object",
+  "required": [
+    "name",
+    "key",
+    "version",
+    "description",
+    "author"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the extension",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "key": {
+      "type": "string",
+      "description": "Unique identifier for the extension (lowercase, alphanumeric, hyphens)",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "version": {
+      "type": "string",
+      "description": "Extension version (semantic versioning)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.-]+)?$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the extension's purpose",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "author": {
+      "type": "object",
+      "description": "Information about the extension developer",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Developer or organization name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Developer website"
+        }
+      }
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Extension homepage or documentation URL"
+    },
+    "repository": {
+      "type": "object",
+      "description": "Source code repository information",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["git", "svn", "hg"],
+          "description": "Repository type"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Repository URL"
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "description": "License identifier (SPDX)",
+      "examples": ["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause"]
+    },
+    "image": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to extension icon/logo (for ChurchTools store)"
+    },
+    "extensionPoints": {
+      "type": "array",
+      "description": "List of ChurchTools extension points this extension supports",
+      "items": {
+        "type": "object",
+        "required": ["id", "entryPoint"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ChurchTools extension point identifier",
+            "examples": [
+              "calendar-dialog-availability",
+              "person-details-sidebar",
+              "event-list-actions"
+            ]
+          },
+          "entryPoint": {
+            "type": "string",
+            "description": "Name of the entry point to load (registered in extension)",
+            "examples": ["calendarAvailability", "personSidebar"]
+          },
+          "title": {
+            "type": "string",
+            "description": "Human-readable title for this extension point integration"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this integration provides"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this extension point is enabled by default",
+            "default": true
+          }
+        }
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Permissions required by this extension",
+      "items": {
+        "type": "string",
+        "examples": [
+          "read:calendar",
+          "write:calendar",
+          "read:persons",
+          "write:persons",
+          "read:events",
+          "admin:settings"
+        ]
+      }
+    },
+    "minChurchToolsVersion": {
+      "type": "string",
+      "description": "Minimum ChurchTools version required",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "maxChurchToolsVersion": {
+      "type": "string",
+      "description": "Maximum ChurchTools version supported (optional)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "settings": {
+      "type": "object",
+      "description": "Extension settings schema (for ChurchTools admin UI)",
+      "additionalProperties": true
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "External dependencies (for ChurchTools to load)",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}
