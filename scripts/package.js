@@ -11,8 +11,18 @@ const rootDir = path.resolve(__dirname, '..');
 
 // Read package.json for project info
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
-const projectName = packageJson.name;
-const version = packageJson.version;
+
+// Read manifest.json for extension info
+let manifest;
+try {
+    manifest = JSON.parse(fs.readFileSync(path.join(rootDir, 'manifest.json'), 'utf8'));
+} catch (error) {
+    console.warn('Warning: Could not read manifest.json, using package.json');
+}
+
+const projectName = manifest?.key || packageJson.name;
+const extensionName = manifest?.name || projectName;
+const version = manifest?.version || packageJson.version;
 
 // Get git commit hash (short)
 let gitHash = '';
@@ -34,7 +44,8 @@ const archiveName = `${projectName}-v${version}-${gitHash}.zip`;
 const archivePath = path.join(releasesDir, archiveName);
 
 console.log('📦 Creating ChurchTools extension package...');
-console.log(`   Project: ${projectName}`);
+console.log(`   Extension: ${extensionName}`);
+console.log(`   Key: ${projectName}`);
 console.log(`   Version: ${version}`);
 console.log(`   Git Hash: ${gitHash}`);
 console.log(`   Archive: ${archiveName}`);
@@ -45,6 +56,14 @@ if (!fs.existsSync(distDir)) {
     console.error('❌ Error: dist directory not found. Run "npm run build" first.');
     process.exit(1);
 }
+
+// Check if manifest.json exists in dist
+const distManifest = path.join(distDir, 'manifest.json');
+if (!fs.existsSync(distManifest)) {
+    console.error('❌ Error: manifest.json not found in dist. Make sure the build process copies it.');
+    process.exit(1);
+}
+console.log('✓ manifest.json found in dist/');
 
 try {
     // Create ZIP archive using system zip command

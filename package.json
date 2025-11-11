@@ -9,7 +9,9 @@
         "build:simple": "VITE_BUILD_MODE=simple npm run build",
         "build:advanced": "VITE_BUILD_MODE=advanced npm run build",
         "preview": "vite preview",
-        "deploy": "npm run build && node scripts/package.js"
+        "deploy": "npm run build && node scripts/package.js",
+        "deploy:simple": "VITE_BUILD_MODE=simple npm run build && node scripts/package.js",
+        "deploy:advanced": "VITE_BUILD_MODE=advanced npm run build && node scripts/package.js"
     },
     "devDependencies": {
         "@churchtools/churchtools-client": "^1.4.0",

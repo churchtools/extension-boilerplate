@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'path';
+import { copyFileSync } from 'fs';
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -65,5 +66,21 @@ export default ({ mode }) => {
         // For production library builds, use relative paths so ChurchTools can control deployment location
         base: isDevelopment ? `/ccm/${key}/` : './',
         build: isDevelopment ? {} : (buildMode === 'advanced' ? advancedBuildConfig : simpleBuildConfig),
+        plugins: isDevelopment ? [] : [
+            // Copy manifest.json to dist after build
+            {
+                name: 'copy-manifest',
+                closeBundle() {
+                    const manifestSource = resolve(__dirname, 'manifest.json');
+                    const manifestDest = resolve(__dirname, 'dist/manifest.json');
+                    try {
+                        copyFileSync(manifestSource, manifestDest);
+                        console.log('✓ Copied manifest.json to dist/');
+                    } catch (error) {
+                        console.error('Failed to copy manifest.json:', error);
+                    }
+                },
+            },
+        ],
     });
 };

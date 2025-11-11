@@ -15,6 +15,8 @@ This project provides a boilerplate for building your own extension for [ChurchT
 
 ## Documentation
 
+- **[MANIFEST.md](MANIFEST.md)** - 📋 Extension manifest guide (name, version, extension points)
+- **[EXTENSION_COMMUNICATION.md](EXTENSION_COMMUNICATION.md)** - 🔄 Event-based bidirectional communication
 - **[BUILD_MODES.md](BUILD_MODES.md)** - ⭐ Complete guide for choosing and using build modes (simple vs advanced)
 - **[EXAMPLES.md](EXAMPLES.md)** - 📚 Practical examples and comparisons of both build modes
 - **[CHURCHTOOLS_ASSET_PATH.md](CHURCHTOOLS_ASSET_PATH.md)** - 🔧 Asset path handling and deployment flexibility
@@ -75,6 +77,38 @@ VITE_PASSWORD=yourpass
 - See [BUILD_MODES.md](BUILD_MODES.md) for detailed comparison
 
 This file is included in `.gitignore` to prevent sensitive data from being committed to version control.
+
+### Extension Manifest
+
+Edit `manifest.json` to configure your extension metadata:
+
+```json
+{
+  "name": "My Extension",
+  "key": "my-extension",
+  "version": "1.0.0",
+  "description": "What your extension does",
+  "author": {
+    "name": "Your Name",
+    "email": "you@example.com"
+  },
+  "extensionPoints": [
+    {
+      "id": "calendar-dialog-availability",
+      "entryPoint": "calendarAvailability"
+    }
+  ]
+}
+```
+
+The manifest tells ChurchTools:
+- ✅ Extension name and version
+- ✅ Which extension points you support
+- ✅ Which entry points to load
+- ✅ Permissions required
+- ✅ Compatibility requirements
+
+See [MANIFEST.md](MANIFEST.md) for complete documentation.
 
 ## Development and Deployment
 

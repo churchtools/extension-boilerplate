@@ -17,7 +17,7 @@ const calendarAvailabilityEntryPoint: EntryPoint<CalendarDialogData> = ({
     off,
     emit,
     element,
-    churchtoolsClient,
+    // churchtoolsClient can be used to fetch availability data from API
 }) => {
     console.log('[Calendar Availability] Initializing with data:', data);
 
