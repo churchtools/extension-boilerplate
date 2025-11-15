@@ -14,121 +14,285 @@
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 height: 100vh;
+                background: #f5f5f5;
                 display: flex;
-                flex-direction: column;
             }
 
-            #menu-bar {
+            #menu {
+                width: 250px;
                 background: #2c3e50;
                 color: white;
-                display: flex;
-                padding: 0;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                overflow-y: auto;
+                flex-shrink: 0;
+            }
+
+            #menu-header {
+                padding: 1.5rem;
+                background: #1a252f;
+                border-bottom: 1px solid #34495e;
+            }
+
+            #menu-header h2 {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.2rem;
+            }
+
+            #menu-header p {
+                margin: 0;
+                font-size: 0.85rem;
+                color: #95a5a6;
             }
 
             .menu-item {
                 padding: 1rem 1.5rem;
                 cursor: pointer;
-                border: none;
-                background: none;
-                color: white;
-                font-size: 1rem;
+                border-bottom: 1px solid #34495e;
                 transition: background 0.2s;
-                border-bottom: 3px solid transparent;
             }
 
             .menu-item:hover {
-                background: rgba(255, 255, 255, 0.1);
+                background: #34495e;
             }
 
             .menu-item.active {
-                background: rgba(255, 255, 255, 0.15);
-                border-bottom-color: #3498db;
+                background: #3498db;
+            }
+
+            .menu-item-title {
+                font-weight: 600;
+                margin-bottom: 0.25rem;
+            }
+
+            .menu-item-description {
+                font-size: 0.8rem;
+                color: #95a5a6;
             }
 
             #app {
                 flex: 1;
                 overflow: auto;
             }
+
+            /* Toast notification styles */
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                font-size: 0.95rem;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+            }
+
+            .toast.success {
+                background: #d4edda;
+                border: 1px solid #c3e6cb;
+                color: #155724;
+            }
+
+            .toast.error {
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+            }
+
+            .toast.info {
+                background: #d1ecf1;
+                border: 1px solid #bee5eb;
+                color: #0c5460;
+            }
+
+            .toast.warning {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                color: #856404;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+
+            .toast.hiding {
+                animation: slideOut 0.3s ease-out forwards;
+            }
         </style>
     </head>
     <body>
-        <nav id="menu-bar">
-            <button class="menu-item active" data-entry="main">Extension</button>
-            <button class="menu-item" data-entry="admin">Settings</button>
-        </nav>
+        <div id="menu">
+            <div id="menu-header">
+                <h2>Extension Test Environment</h2>
+                <p>Select an entry point</p>
+            </div>
+            <div id="menu-items"></div>
+        </div>
         <div id="app"></div>
         <script type="module" src="/src/index.ts"></script>
         <script type="module">
             import { renderExtension, loadEntryPoint } from '/src/index.ts';
+            import manifest from '/manifest.json';
 
             let currentInstance = null;
+            let currentActiveMenuItem = null;
 
-            async function switchView(entryPointName) {
-                // Destroy previous instance
-                if (currentInstance) {
-                    await currentInstance.destroy();
-                    currentInstance = null;
-                }
+            // Toast notification function
+            function showToast(data) {
+                const { message, type = 'info', duration = 3000 } = data;
 
-                // Clear the app div
-                const app = document.getElementById('app');
-                app.innerHTML = '';
+                // Create toast element
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
 
-                // Load and render new entry point
-                try {
-                    const entryPoint = await loadEntryPoint(entryPointName);
+                // Add to DOM
+                document.body.appendChild(toast);
 
-                    // Provide mock data for the entry points
-                    const data = entryPointName === 'main'
-                        ? {
+                // Auto-remove after duration
+                setTimeout(() => {
+                    toast.classList.add('hiding');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300); // Match animation duration
+                }, duration);
+            }
+
+            // Get mock data for entry point
+            function getMockData(entryPointId) {
+                const commonExtensionInfo = {
+                    name: manifest.name,
+                    version: manifest.version,
+                    key: manifest.key,
+                    description: manifest.description,
+                    author: manifest.author
+                };
+
+                switch (entryPointId) {
+                    case 'admin':
+                        return {
+                            extensionInfo: commonExtensionInfo
+                        };
+
+                    case 'main':
+                        return {
                             userId: 1,
-                            permissions: ['read:calendar', 'read:persons'],
-                            settings: { enabled: true }
-                          }
-                        : {
-                            settings: {
-                                enabled: true,
-                                apiKey: '',
-                                syncInterval: 30,
-                                enableAvailabilityCheck: true,
-                                enableNotifications: true,
-                                enableDebugMode: false
-                            },
-                            extensionInfo: {
-                                name: 'Extension Boilerplate',
-                                version: '1.0.0',
-                                key: 'extension-boilerplate'
+                            context: {
+                                route: '/extension-boilerplate/dashboard',
+                                params: {
+                                    view: 'statistics'
+                                }
                             }
-                          };
+                        };
 
-                    currentInstance = await renderExtension('app', entryPoint, data);
+                    default:
+                        return {};
+                }
+            }
+
+            // Load an entry point
+            async function loadEntry(extensionPoint, menuItem) {
+                try {
+                    // Clear app container
+                    const appContainer = document.getElementById('app');
+                    appContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;"><p>Loading...</p></div>';
+
+                    // Cleanup previous instance
+                    if (currentInstance && currentInstance.destroy) {
+                        await currentInstance.destroy();
+                        currentInstance = null;
+                    }
+
+                    // Update active menu item
+                    if (currentActiveMenuItem) {
+                        currentActiveMenuItem.classList.remove('active');
+                    }
+                    menuItem.classList.add('active');
+                    currentActiveMenuItem = menuItem;
+
+                    // Load entry point
+                    const entryPoint = await loadEntryPoint(extensionPoint.entryPoint);
+                    const data = getMockData(extensionPoint.entryPoint);
+
+                    // Render extension and get instance
+                    const instance = await renderExtension('app', entryPoint, data);
+                    currentInstance = instance;
+
+                    // Listen to notification:show event
+                    if (instance && instance.on) {
+                        instance.on('notification:show', (notificationData) => {
+                            console.log('[Index] Received notification:', notificationData);
+                            showToast(notificationData);
+                        });
+                    }
                 } catch (error) {
                     console.error('Failed to load entry point:', error);
-                    app.innerHTML = `
+                    document.getElementById('app').innerHTML = `
                         <div style="padding: 2rem; color: #e74c3c;">
-                            <h2>Error loading ${entryPointName}</h2>
+                            <h2>Error loading extension</h2>
                             <p>${error.message}</p>
                         </div>
                     `;
                 }
             }
 
-            // Handle menu clicks
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    // Update active state
-                    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-                    e.target.classList.add('active');
+            // Initialize menu and load first entry point
+            async function init() {
+                try {
+                    const menuItemsContainer = document.getElementById('menu-items');
 
-                    // Switch view
-                    const entryPoint = e.target.dataset.entry;
-                    switchView(entryPoint);
-                });
-            });
+                    // Create menu items from manifest
+                    manifest.extensionPoints.forEach((extensionPoint, index) => {
+                        const menuItem = document.createElement('div');
+                        menuItem.className = 'menu-item';
+                        menuItem.innerHTML = `
+                            <div class="menu-item-title">${extensionPoint.title}</div>
+                            <div class="menu-item-description">${extensionPoint.description}</div>
+                        `;
 
-            // Load default view (main)
-            switchView('main');
+                        // Load entry point on click
+                        menuItem.addEventListener('click', () => {
+                            loadEntry(extensionPoint, menuItem);
+                        });
+
+                        menuItemsContainer.appendChild(menuItem);
+
+                        // Load first entry point by default
+                        if (index === 0) {
+                            setTimeout(() => loadEntry(extensionPoint, menuItem), 0);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Failed to initialize:', error);
+                    document.getElementById('app').innerHTML = `
+                        <div style="padding: 2rem; color: #e74c3c;">
+                            <h2>Initialization Error</h2>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            init();
         </script>
     </body>
 </html>

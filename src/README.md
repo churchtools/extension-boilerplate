@@ -22,12 +22,6 @@ src/
 │   ├── data-viewer.ts
 │   └── README.md          - How to add entry points
 │
-├── extension-points/       📋 Type definitions for ChurchTools extension points
-│   ├── main.ts            - Main module contract
-│   ├── admin.ts           - Admin panel contract
-│   ├── calendar-dialog.ts - Calendar dialog contract
-│   └── person-details.ts  - Person details contract
-│
 ├── types/                  📝 TypeScript type definitions
 │   └── extension.ts       - Core extension types
 │
@@ -69,14 +63,21 @@ src/
    npm run dev
    ```
 
-### 📋 To define extension point contracts:
+### 📋 To use extension point types:
 
-Create type definition files in `src/extension-points/` to document:
-- Data structure ChurchTools provides
-- Events FROM ChurchTools (that you listen to)
-- Events TO ChurchTools (that you emit)
+Extension point type definitions are provided by the `@churchtools/extension-points` package:
 
-Example: `src/extension-points/my-integration.ts`
+```typescript
+import type { MainModuleData, AdminData } from '@churchtools/extension-points';
+import type { EntryPoint } from '../lib/main';
+
+const myEntryPoint: EntryPoint<MainModuleData> = ({ data, on, emit }) => {
+    // Type-safe access to data
+    console.log(data.userId, data.permissions);
+};
+```
+
+See the package documentation for all available extension point types.
 
 ### 🔧 To add utilities:
 

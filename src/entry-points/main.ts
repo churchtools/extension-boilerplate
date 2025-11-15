@@ -1,206 +1,259 @@
 import type { EntryPoint } from '../lib/main';
-import type { MainModuleData } from '../extension-points/main';
+import type { MainModuleData } from '@churchtools/extension-points/main';
+import type { Status, CustomModule, CustomModuleDataCategory, CustomModuleDataValue } from '../utils/ct-types';
+import type { PageResponse } from "@churchtools/churchtools-client/dist/src/churchtoolsClient";
 
 /**
  * Main Module Entry Point
  *
- * This entry point renders the extension as a standalone module with its own menu entry.
- * It provides a full-page view for the extension's main functionality.
- *
- * Extension Point: main
- * Location: ChurchTools main menu → Extension module
- * Data: { userId, permissions, settings }
+ * Dashboard showing person statistics per status.
+ * Demonstrates:
+ * - Fetching data from ChurchTools API
+ * - Using settings from key-value store (background color)
+ * - Handling route information through MainModuleData
  */
 
-const mainEntryPoint: EntryPoint<MainModuleData> = ({
-    data,
-    on,
-    off,
-    emit,
-    element,
-    user,
-    // churchtoolsClient available for future use
-}) => {
-    console.log('[Main Module] Initializing main view');
-    console.log('[Main Module] User:', user);
-    console.log('[Main Module] Permissions:', data.permissions);
+interface PersonsResponse {
+    data: any[];
+    meta: {
+        pagination: {
+            current: number;
+            limit: number;
+            total: number;
+        };
+    };
+}
 
-    // Track current view/tab
-    let currentView = 'dashboard';
+interface StatusStats {
+    status: Status;
+    count: number;
+}
 
-    // Render the main module UI
-    function render(view = 'dashboard') {
-        currentView = view;
+const mainEntryPoint: EntryPoint<MainModuleData> = ({ data, element, churchtoolsClient, KEY }) => {
+    console.log('[Main] Initializing');
+    console.log('[Main] User ID:', data.userId);
+    console.log('[Main] Route:', data.context?.route);
+    console.log('[Main] Params:', data.context?.params);
 
-        element.innerHTML = `
-            <div style="display: flex; flex-direction: column; height: 100%; background: #f5f5f5;">
-                <!-- Header -->
-                <header style="background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <h1 style="margin: 0; font-size: 1.5rem; color: #333;">Extension Module</h1>
-                    <p style="margin: 0.5rem 0 0 0; color: #666;">Welcome, ${user.firstName}!</p>
-                </header>
+    let backgroundColor = '#ffffff'; // Default fallback
+    let statistics: StatusStats[] = [];
+    let isLoading = true;
+    let errorMessage = '';
 
-                <!-- Navigation Tabs -->
-                <nav style="background: #fff; border-bottom: 1px solid #ddd; padding: 0 2rem;">
-                    <div style="display: flex; gap: 2rem;">
-                        <button class="nav-tab" data-view="dashboard" style="padding: 1rem 0; border: none; background: none; cursor: pointer; border-bottom: 3px solid ${view === 'dashboard' ? '#007bff' : 'transparent'}; color: ${view === 'dashboard' ? '#007bff' : '#666'}; font-weight: ${view === 'dashboard' ? 'bold' : 'normal'};">
-                            Dashboard
-                        </button>
-                        <button class="nav-tab" data-view="calendar" style="padding: 1rem 0; border: none; background: none; cursor: pointer; border-bottom: 3px solid ${view === 'calendar' ? '#007bff' : 'transparent'}; color: ${view === 'calendar' ? '#007bff' : '#666'}; font-weight: ${view === 'calendar' ? 'bold' : 'normal'};">
-                            Calendar
-                        </button>
-                        <button class="nav-tab" data-view="reports" style="padding: 1rem 0; border: none; background: none; cursor: pointer; border-bottom: 3px solid ${view === 'reports' ? '#007bff' : 'transparent'}; color: ${view === 'reports' ? '#007bff' : '#666'}; font-weight: ${view === 'reports' ? 'bold' : 'normal'};">
-                            Reports
-                        </button>
-                    </div>
-                </nav>
+    // Initialize and load data
+    async function initialize() {
+        try {
+            isLoading = true;
+            render();
 
-                <!-- Main Content Area -->
-                <main style="flex: 1; padding: 2rem; overflow-y: auto;">
-                    <div id="content-area">
-                        ${renderViewContent(view)}
-                    </div>
-                </main>
-            </div>
-        `;
+            // Load background color from settings
+            await loadBackgroundColor();
 
-        // Attach navigation handlers
-        element.querySelectorAll('.nav-tab').forEach((tab) => {
-            tab.addEventListener('click', () => {
-                const newView = (tab as HTMLElement).dataset.view!;
-                render(newView);
-                emit('view:changed', newView);
+            // Load person statistics
+            await loadStatistics();
+
+            isLoading = false;
+            errorMessage = '';
+            render();
+        } catch (error) {
+            console.error('[Main] Initialization error:', error);
+            isLoading = false;
+            errorMessage = error instanceof Error ? error.message : 'Failed to initialize';
+            render();
+        }
+    }
+
+    // Load background color from key-value store
+    async function loadBackgroundColor(): Promise<void> {
+        try {
+            // Get extension module
+            const extensionModule = await churchtoolsClient.get<CustomModule>(
+                `/custommodules/${KEY}`
+            );
+
+            // Get categories
+            const categories = await churchtoolsClient.get<CustomModuleDataCategory[]>(
+                `/custommodules/${extensionModule.id}/customdatacategories`
+            );
+
+            // Find settings category
+            const settingsCategory = categories.find((cat) => cat.shorty === 'settings');
+            if (!settingsCategory) {
+                console.log('[Main] No settings category found, using default background');
+                return;
+            }
+
+            // Get values
+            const values = await churchtoolsClient.get<CustomModuleDataValue[]>(
+                `/custommodules/${extensionModule.id}/customdatacategories/${settingsCategory.id}/customdatavalues`
+            );
+
+            // Find backgroundColor value
+            const bgColorValue = values.find((v) => {
+                try {
+                    const parsed = JSON.parse(v.value);
+                    return parsed.key === 'backgroundColor';
+                } catch {
+                    return false;
+                }
             });
+
+            if (bgColorValue) {
+                const parsed = JSON.parse(bgColorValue.value);
+                backgroundColor = parsed.value || '#ffffff';
+                console.log('[Main] Loaded background color:', backgroundColor);
+            }
+        } catch (error) {
+            console.log('[Main] Could not load background color, using default:', error);
+            // Fallback to white if settings not found
+            backgroundColor = '#ffffff';
+        }
+    }
+
+    // Load person statistics per status
+    async function loadStatistics(): Promise<void> {
+        // Get all statuses
+        const statuses = await churchtoolsClient.get<Status[]>('/statuses');
+        console.log('[Main] Loaded statuses:', statuses.length);
+
+        // Fetch person count for each status
+        const statsPromises = statuses.map(async (status) => {
+            try {
+                const response = await churchtoolsClient.get<PageResponse<PersonsResponse>>(
+                    `/persons?status_ids[]=${status.id}&page=1&limit=1`,
+                    undefined,
+                    true
+                );
+                return {
+                    status,
+                    count: response.data.meta.pagination.total,
+                };
+            } catch (error) {
+                console.error(`[Main] Failed to load count for status ${status.id}:`, error);
+                return {
+                    status,
+                    count: 0,
+                };
+            }
         });
 
-        // Attach action handlers
-        const actionBtn = element.querySelector('#action-btn');
-        if (actionBtn) {
-            actionBtn.addEventListener('click', async () => {
-                emit('action:triggered', { view: currentView });
-                await handleAction(currentView);
-            });
-        }
+        statistics = await Promise.all(statsPromises);
+        console.log('[Main] Loaded statistics:', statistics);
     }
 
-    // Render content for each view
-    function renderViewContent(view: string): string {
-        switch (view) {
-            case 'dashboard':
-                return `
-                    <div style="max-width: 1200px;">
-                        <h2>Dashboard</h2>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-                            <div style="background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <h3 style="margin: 0 0 0.5rem 0; color: #007bff;">Statistics</h3>
-                                <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #333;">42</p>
-                                <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.875rem;">Total items</p>
+    // Render UI
+    function render() {
+        element.innerHTML = `
+            <div style="min-height: 100vh; background: ${backgroundColor}; padding: 2rem;">
+                <div style="max-width: 1200px; margin: 0 auto;">
+                    <!-- Header -->
+                    <div style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h1 style="margin: 0 0 0.5rem 0; font-size: 1.8rem; color: #333;">Person Statistics Dashboard</h1>
+                        <p style="margin: 0; color: #666; font-size: 0.95rem;">
+                            Overview of persons by status
+                        </p>
+                        ${
+                            data.context?.route
+                                ? `
+                            <div style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 4px; font-size: 0.85rem; color: #666;">
+                                <strong>Current Route:</strong> ${data.context.route}
+                                ${data.context.params && Object.keys(data.context.params).length > 0 ? `<br><strong>Params:</strong> ${JSON.stringify(data.context.params)}` : ''}
                             </div>
-                            <div style="background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <h3 style="margin: 0 0 0.5rem 0; color: #28a745;">Active</h3>
-                                <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #333;">18</p>
-                                <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.875rem;">Currently active</p>
-                            </div>
-                            <div style="background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <h3 style="margin: 0 0 0.5rem 0; color: #ffc107;">Pending</h3>
-                                <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #333;">7</p>
-                                <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.875rem;">Awaiting action</p>
-                            </div>
-                        </div>
-                        <div style="background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 1.5rem;">
-                            <h3 style="margin: 0 0 1rem 0;">Recent Activity</h3>
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee;">User created new entry</li>
-                                <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee;">Settings updated</li>
-                                <li style="padding: 0.75rem 0;">Report generated</li>
-                            </ul>
-                        </div>
+                        `
+                                : ''
+                        }
                     </div>
-                `;
 
-            case 'calendar':
-                return `
-                    <div style="max-width: 1200px;">
-                        <h2>Calendar View</h2>
-                        <div style="background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 2rem; text-align: center;">
-                            <p style="color: #666; margin: 0 0 1rem 0;">Calendar integration view</p>
-                            <button id="action-btn" style="padding: 0.75rem 1.5rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
-                                Load Calendar Data
-                            </button>
-                            <div id="calendar-content" style="margin-top: 2rem; min-height: 300px; border: 1px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #999;">
-                                Calendar content will appear here
+                    ${
+                        isLoading
+                            ? `
+                        <div style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 3rem; text-align: center; color: #666;">
+                            <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                            <p style="margin: 0;">Loading statistics...</p>
+                        </div>
+                    `
+                            : errorMessage
+                              ? `
+                        <div style="background: #fff; border: 1px solid #fcc; border-radius: 8px; padding: 1.5rem; color: #c00;">
+                            <strong>Error:</strong> ${errorMessage}
+                        </div>
+                    `
+                              : `
+                        <!-- Statistics Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+                            ${statistics
+                                .map(
+                                    (stat) => `
+                                <div style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;"
+                                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)';">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                                        <h3 style="margin: 0; font-size: 1rem; color: #555; font-weight: 500;">${stat.status.nameTranslated || stat.status.name}</h3>
+                                        <span style="background: ${stat.status.isMember ? '#d4edda' : '#f8f9fa'}; color: ${stat.status.isMember ? '#155724' : '#666'}; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                                            ${stat.status.shorty}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 2.5rem; font-weight: 700; color: #007bff; margin: 0.5rem 0;">
+                                        ${stat.count.toLocaleString()}
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: #999;">
+                                        ${stat.count === 1 ? 'person' : 'persons'}
+                                        ${stat.status.isMember ? ' • <span style="color: #155724;">Member</span>' : ''}
+                                    </div>
+                                </div>
+                            `
+                                )
+                                .join('')}
+                        </div>
+
+                        <!-- Summary -->
+                        <div style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #333;">Summary</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <div style="color: #666; font-size: 0.85rem; margin-bottom: 0.25rem;">Total Persons</div>
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: #007bff;">
+                                        ${statistics.reduce((sum, stat) => sum + stat.count, 0).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="color: #666; font-size: 0.85rem; margin-bottom: 0.25rem;">Total Statuses</div>
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: #28a745;">
+                                        ${statistics.length}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="color: #666; font-size: 0.85rem; margin-bottom: 0.25rem;">Members</div>
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: #155724;">
+                                        ${statistics
+                                            .filter((stat) => stat.status.isMember)
+                                            .reduce((sum, stat) => sum + stat.count, 0)
+                                            .toLocaleString()}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
 
-            case 'reports':
-                return `
-                    <div style="max-width: 1200px;">
-                        <h2>Reports</h2>
-                        <div style="background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 2rem;">
-                            <h3 style="margin: 0 0 1rem 0;">Generate Report</h3>
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; color: #333;">Report Type:</label>
-                                <select style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                                    <option>Activity Summary</option>
-                                    <option>Usage Statistics</option>
-                                    <option>Performance Metrics</option>
-                                </select>
-                            </div>
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; color: #333;">Date Range:</label>
-                                <input type="date" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                            </div>
-                            <button id="action-btn" style="padding: 0.75rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
-                                Generate Report
-                            </button>
+                        <!-- Info Box -->
+                        <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-left: 4px solid #007bff; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                                <strong>Background Color:</strong> This view uses the background color configured in the admin settings.
+                                Current value: <code style="background: #fff; padding: 0.2rem 0.4rem; border-radius: 3px; font-family: monospace;">${backgroundColor}</code>
+                            </p>
                         </div>
-                    </div>
-                `;
-
-            default:
-                return `<p>Unknown view: ${view}</p>`;
-        }
+                    `
+                    }
+                </div>
+            </div>
+        `;
     }
 
-    // Handle actions
-    async function handleAction(view: string) {
-        const contentArea = element.querySelector('#calendar-content, #report-output');
-        if (contentArea) {
-            contentArea.innerHTML = '<p style="color: #666;">Loading...</p>';
+    // Initialize on load
+    initialize();
 
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            contentArea.innerHTML = `<p style="color: #28a745;">✓ Action completed for ${view} view</p>`;
-        }
-    }
-
-    // Initial render
-    render();
-
-    // Listen for events from ChurchTools
-    const settingsChangedHandler = (newSettings: any) => {
-        console.log('[Main Module] Settings changed:', newSettings);
-        data.settings = newSettings;
-        // Could re-render or update specific parts
-    };
-
-    const permissionsChangedHandler = (newPermissions: string[]) => {
-        console.log('[Main Module] Permissions changed:', newPermissions);
-        data.permissions = newPermissions;
-        // Update UI based on new permissions
-    };
-
-    on('settings:changed', settingsChangedHandler);
-    on('permissions:changed', permissionsChangedHandler);
-
-    // Cleanup
+    // Cleanup function
     return () => {
-        console.log('[Main Module] Cleaning up');
-        off('settings:changed', settingsChangedHandler);
-        off('permissions:changed', permissionsChangedHandler);
+        console.log('[Main] Cleaning up');
     };
 };
 

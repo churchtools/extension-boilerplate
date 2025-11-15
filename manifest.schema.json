@@ -82,10 +82,18 @@
       "description": "License identifier (SPDX)",
       "examples": ["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause"]
     },
-    "image": {
-      "type": "string",
-      "format": "uri",
-      "description": "URL to extension icon/logo (for ChurchTools store)"
+    "icon": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to extension icon (for ChurchTools store)"
+    },
+    "images": {
+      "type": "array",
+      "description": "URLs to extension images (for ChurchTools store). First image is used as hero image.",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
     },
     "extensionPoints": {
       "type": "array",

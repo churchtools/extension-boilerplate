@@ -15,30 +15,25 @@
     "url": "https://github.com/yourname/extension-boilerplate.git"
   },
   "license": "MIT",
-  "images": ["https://your-website.com/extension-icon.png"],
+  "icon": "https://your-website.com/extension-icon.png",
+  "images": ["https://your-website.com/screenshot1.png"],
   "extensionPoints": [
     {
       "id": "main",
       "entryPoint": "main",
-      "title": "Extension Module",
-      "description": "Main module with dashboard and features"
+      "title": "Statistics Dashboard",
+      "description": "Person statistics by status"
     },
     {
       "id": "admin",
       "entryPoint": "admin",
       "title": "Extension Settings",
       "description": "Configure extension settings"
-    },
-    {
-      "id": "calendar-dialog-availability",
-      "entryPoint": "calendarAvailability",
-      "title": "Calendar Availability",
-      "description": "Shows availability and suggests alternative times in calendar dialogs"
     }
   ],
   "permissions": [
-    "read:calendar",
-    "read:persons"
+    "churchcal view",
+    "churchdb view"
   ],
   "minChurchToolsVersion": "3.0.0"
 }

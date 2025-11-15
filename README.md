@@ -241,21 +241,21 @@ See [MULTI_EXTENSION_GUIDE.md](MULTI_EXTENSION_GUIDE.md) for complete details.
 
 ## API
 
-Following endpoints are available. Permissions are possible per route. Types are documented in `ct-types.d.ts` (CustomModuleCreate, CustomModuleDataCategoryCreate, CustomModuleDataValueCreate)
+Following endpoints are available. Permissions are possible per route. Types are documented in `src/utils/ct-types.d.ts` (CustomModuleCreate, CustomModuleDataCategoryCreate, CustomModuleDataValueCreate)
 
 GET `/custommodules` get all extensions  
-GET `/custommodules/{extensionkey}` get an extensions by its key  
-GET `/custommodules/{moduleId}` get an extension by its ID
+GET `/custommodules/{extensionKey}` get an extensions by its key  
+GET `/custommodules/{extensionId}` get an extension by its ID
 
-GET `/custommodules/{moduleId}/customdatacategories`  
-POST `/custommodules/{moduleId}/customdatacategories`  
-PUT `/custommodules/{moduleId}/customdatacategories/{dataCategoryId}`  
-DELETE `/custommodules/{moduleId}/customdatacategories/{dataCategoryId}`
+GET `/custommodules/{extensionId}/customdatacategories`  
+POST `/custommodules/{extensionId}/customdatacategories`  
+PUT `/custommodules/{extensionId}/customdatacategories/{dataCategoryId}`  
+DELETE `/custommodules/{extensionId}/customdatacategories/{dataCategoryId}`
 
-GET `/custommodules/{moduleId}/customdatacategories/{dataCategoryId}/customdatavalues`  
-POST `/custommodules/{moduleId}/customdatacategories/{dataCategoryId}/customdatavalues`  
-PUT `/custommodules/{moduleId}/customdatacategories/{dataCategoryId}/customdatavalues/{valueId}`  
-DELETE `/custommodules/{moduleId}/customdatacategories/{dataCategoryId}/customdatavalues/{valueId}`
+GET `/custommodules/{extensionId}/customdatacategories/{dataCategoryId}/customdatavalues`  
+POST `/custommodules/{extensionId}/customdatacategories/{dataCategoryId}/customdatavalues`  
+PUT `/custommodules/{extensionId}/customdatacategories/{dataCategoryId}/customdatavalues/{valueId}`  
+DELETE `/custommodules/{extensionId}/customdatacategories/{dataCategoryId}/customdatavalues/{valueId}`
 
 ## Support
 

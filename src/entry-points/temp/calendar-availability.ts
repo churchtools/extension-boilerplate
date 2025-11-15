@@ -1,5 +1,5 @@
 import type { EntryPoint } from '../lib/main';
-import type { CalendarDialogData } from '../extension-points/calendar-dialog';
+import type { AppointmentDialogDetailData } from '@churchtools/extension-points/appointment-dialog-detail';
 
 /**
  * Calendar Availability Entry Point
@@ -11,7 +11,7 @@ import type { CalendarDialogData } from '../extension-points/calendar-dialog';
  * - Displays user availability
  * - Suggests alternative times back to ChurchTools
  */
-const calendarAvailabilityEntryPoint: EntryPoint<CalendarDialogData> = ({
+const calendarAvailabilityEntryPoint: EntryPoint<AppointmentDialogDetailData> = ({
     data,
     on,
     off,

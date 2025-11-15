@@ -13,18 +13,12 @@ export interface ExtensionContext<TData = any> {
     user: Person;
     /** The DOM element where the extension should render */
     element: HTMLElement;
-    /** The extension key (optional) */
-    KEY?: string;
+    /** The extension key */
+    KEY: string;
 
     /**
      * Data specific to this extension point
      * ChurchTools provides initial and current state data here
-     *
-     * @example
-     * ```typescript
-     * // In a calendar dialog
-     * const { selectedDate, selectedTime } = data;
-     * ```
      */
     data: TData;
 

@@ -13,6 +13,9 @@
         "deploy:simple": "VITE_BUILD_MODE=simple npm run build && node scripts/package.js",
         "deploy:advanced": "VITE_BUILD_MODE=advanced npm run build && node scripts/package.js"
     },
+    "dependencies": {
+        "@churchtools/extension-points": "file:../churchtools-extension-points"
+    },
     "devDependencies": {
         "@churchtools/churchtools-client": "^1.4.0",
         "@types/node": "^24.3.0",

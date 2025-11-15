@@ -28,17 +28,11 @@ export type EntryPointLoader = () => Promise<{ default: EntryPoint }>;
  * ```
  */
 export const entryPointRegistry: Record<string, EntryPointLoader> = {
-    // Demo entry points (you can remove these)
-    welcome: () => import('./welcome'),
-    userInfo: () => import('./user-info'),
-    dataViewer: () => import('./data-viewer'),
-
-    // Main entry points
-    main: () => import('./main'),
+    // Admin configuration entry point
     admin: () => import('./admin'),
 
-    // Extension point integrations
-    calendarAvailability: () => import('./calendar-availability'),
+    // Main module entry point
+    main: () => import('./main'),
 
     // Add your custom entry points here:
     // myFeature: () => import('./my-feature'),
