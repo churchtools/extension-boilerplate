@@ -1,7 +1,6 @@
 import type { EntryPoint } from '../lib/main';
 import type { MainModuleData } from '@churchtools/extension-points/main';
 import type { Status, CustomModule, CustomModuleDataCategory, CustomModuleDataValue } from '../utils/ct-types';
-import type { PageResponse } from "@churchtools/churchtools-client/dist/src/churchtoolsClient";
 
 /**
  * Main Module Entry Point
@@ -119,7 +118,7 @@ const mainEntryPoint: EntryPoint<MainModuleData> = ({ data, element, churchtools
         // Fetch person count for each status
         const statsPromises = statuses.map(async (status) => {
             try {
-                const response = await churchtoolsClient.get<PageResponse<PersonsResponse>>(
+                const response = await churchtoolsClient.get<any>(
                     `/persons?status_ids[]=${status.id}&page=1&limit=1`,
                     undefined,
                     true
