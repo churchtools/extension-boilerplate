@@ -22,15 +22,11 @@ export default ({ mode }) => {
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
             name: globalName,
-            formats: ['es', 'umd'],
+            formats: ['es'],
             fileName: (format) => `extension.${format}.js`,
         },
         rollupOptions: {
-            external: ['@churchtools/churchtools-client'],
             output: {
-                globals: {
-                    '@churchtools/churchtools-client': 'ChurchToolsClient',
-                },
                 // Inline all dynamic imports to create a single bundle
                 inlineDynamicImports: true,
             },
@@ -42,15 +38,11 @@ export default ({ mode }) => {
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
             name: globalName,
-            formats: ['es', 'umd'],
+            formats: ['es'],
             fileName: (format) => `extension.${format}.js`,
         },
         rollupOptions: {
-            external: ['@churchtools/churchtools-client'],
             output: {
-                globals: {
-                    '@churchtools/churchtools-client': 'ChurchToolsClient',
-                },
                 // Enable manual chunks for better code splitting
                 manualChunks: undefined,
             },
@@ -64,7 +56,7 @@ export default ({ mode }) => {
     return defineConfig({
         // For development, use the ccm path
         // For production library builds, use relative paths so ChurchTools can control deployment location
-        base: isDevelopment ? `/ccm/${key}/` : './',
+        base: `/extensions/${key}/`,
         build: isDevelopment ? {} : (buildMode === 'advanced' ? advancedBuildConfig : simpleBuildConfig),
         plugins: isDevelopment ? [] : [
             // Copy manifest.json to dist after build

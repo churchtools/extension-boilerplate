@@ -9,7 +9,6 @@ import type { Status, CustomModule, CustomModuleDataCategory, CustomModuleDataVa
  * Demonstrates:
  * - Fetching data from ChurchTools API
  * - Using settings from key-value store (background color)
- * - Handling route information through MainModuleData
  */
 
 interface StatusStats {
@@ -19,9 +18,6 @@ interface StatusStats {
 
 const mainEntryPoint: EntryPoint<MainModuleData> = ({ data, element, churchtoolsClient, KEY }) => {
     console.log('[Main] Initializing');
-    console.log('[Main] User ID:', data.userId);
-    console.log('[Main] Route:', data.context?.route);
-    console.log('[Main] Params:', data.context?.params);
 
     let backgroundColor = '#ffffff'; // Default fallback
     let statistics: StatusStats[] = [];

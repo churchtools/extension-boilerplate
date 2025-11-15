@@ -4,14 +4,18 @@
     "version": "0.0.1",
     "type": "module",
     "scripts": {
+        "clean": "rm -rf dist",
         "dev": "vite",
+        "dev:legacy": "vite --config vite.config.legacy.ts",
         "build": "tsc && vite build",
         "build:simple": "VITE_BUILD_MODE=simple npm run build",
         "build:advanced": "VITE_BUILD_MODE=advanced npm run build",
+        "build:legacy": "tsc && vite build --config vite.config.legacy.ts",
         "preview": "vite preview",
-        "deploy": "npm run build && node scripts/package.js",
-        "deploy:simple": "VITE_BUILD_MODE=simple npm run build && node scripts/package.js",
-        "deploy:advanced": "VITE_BUILD_MODE=advanced npm run build && node scripts/package.js"
+        "deploy": "npm run clean && npm run build && node scripts/package.js",
+        "deploy:simple": "npm run clean &&  VITE_BUILD_MODE=simple npm run build && node scripts/package.js",
+        "deploy:advanced": "npm run clean &&  VITE_BUILD_MODE=advanced npm run build && node scripts/package.js",
+        "deploy:legacy": "npm run clean && npm run build:legacy && node scripts/package.js"
     },
     "dependencies": {
         "@churchtools/extension-points": "file:../churchtools-extension-points"
