@@ -388,22 +388,10 @@
             import { renderExtension, loadEntryPoint } from '/src/index.ts';
             import manifest from '/manifest.json';
             import { extensionPointTestData } from '/test/extension-point-test-data.ts';
-            import {
-                AppointmentDialogDetailMetadata,
-                AppointmentDialogTabMetadata,
-                FinanceTabMetadata,
-                MainModuleMetadata,
-                AdminMetadata,
-            } from '@churchtools/extension-points';
+            import { extensionPointMetadataById } from '@churchtools/extension-points';
 
-            // Map extension point IDs to their metadata
-            const extensionPointMetadata = {
-                [AppointmentDialogDetailMetadata.id]: AppointmentDialogDetailMetadata,
-                [AppointmentDialogTabMetadata.id]: AppointmentDialogTabMetadata,
-                [FinanceTabMetadata.id]: FinanceTabMetadata,
-                [MainModuleMetadata.id]: MainModuleMetadata,
-                [AdminMetadata.id]: AdminMetadata,
-            };
+            // Use the centrally managed metadata map from churchtools-extension-points
+            const extensionPointMetadata = extensionPointMetadataById;
 
             let currentInstance = null;
             let currentActiveMenuItem = null;
