@@ -1,6 +1,7 @@
 import type { EntryPoint } from '../lib/main';
 import type { MainModuleData } from '@churchtools/extension-points/main';
-import type { Status, CustomModule, CustomModuleDataCategory, CustomModuleDataValue } from '../utils/ct-types';
+import type { Status } from '../utils/ct-types';
+import { getModule, getCustomDataCategory, getCustomDataValues } from '../utils/kv-store';
 
 /**
  * Main Module Entry Point
@@ -16,7 +17,12 @@ interface StatusStats {
     count: number;
 }
 
-const mainEntryPoint: EntryPoint<MainModuleData> = ({ data, element, churchtoolsClient, KEY }) => {
+interface BackgroundColorSetting {
+    key: string;
+    value: string;
+}
+
+const mainEntryPoint: EntryPoint<MainModuleData> = ({ element, churchtoolsClient, KEY }) => {
     console.log('[Main] Initializing');
 
     let backgroundColor = '#ffffff'; // Default fallback
@@ -51,40 +57,26 @@ const mainEntryPoint: EntryPoint<MainModuleData> = ({ data, element, churchtools
     async function loadBackgroundColor(): Promise<void> {
         try {
             // Get extension module
-            const extensionModule = await churchtoolsClient.get<CustomModule>(
-                `/custommodules/${KEY}`
-            );
-
-            // Get categories
-            const categories = await churchtoolsClient.get<CustomModuleDataCategory[]>(
-                `/custommodules/${extensionModule.id}/customdatacategories`
-            );
+            const extensionModule = await getModule(KEY);
 
             // Find settings category
-            const settingsCategory = categories.find((cat) => cat.shorty === 'settings');
+            const settingsCategory = await getCustomDataCategory<object>('settings');
             if (!settingsCategory) {
                 console.log('[Main] No settings category found, using default background');
                 return;
             }
 
             // Get values
-            const values = await churchtoolsClient.get<CustomModuleDataValue[]>(
-                `/custommodules/${extensionModule.id}/customdatacategories/${settingsCategory.id}/customdatavalues`
+            const values = await getCustomDataValues<BackgroundColorSetting>(
+                settingsCategory.id,
+                extensionModule.id
             );
 
             // Find backgroundColor value
-            const bgColorValue = values.find((v) => {
-                try {
-                    const parsed = JSON.parse(v.value);
-                    return parsed.key === 'backgroundColor';
-                } catch {
-                    return false;
-                }
-            });
+            const bgColorValue = values.find((v) => v.key === 'backgroundColor');
 
             if (bgColorValue) {
-                const parsed = JSON.parse(bgColorValue.value);
-                backgroundColor = parsed.value || '#ffffff';
+                backgroundColor = bgColorValue.value || '#ffffff';
                 console.log('[Main] Loaded background color:', backgroundColor);
             }
         } catch (error) {
@@ -136,16 +128,6 @@ const mainEntryPoint: EntryPoint<MainModuleData> = ({ data, element, churchtools
                         <p style="margin: 0; color: #666; font-size: 0.95rem;">
                             Overview of persons by status
                         </p>
-                        ${
-                            data.context?.route
-                                ? `
-                            <div style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 4px; font-size: 0.85rem; color: #666;">
-                                <strong>Current Route:</strong> ${data.context.route}
-                                ${data.context.params && Object.keys(data.context.params).length > 0 ? `<br><strong>Params:</strong> ${JSON.stringify(data.context.params)}` : ''}
-                            </div>
-                        `
-                                : ''
-                        }
                     </div>
 
                     ${

@@ -1,6 +1,6 @@
 import type { EntryPoint } from '../lib/main';
 import type { AppointmentDialogDetailData } from '@churchtools/extension-points/appointment-dialog-detail';
-import type { CustomModule, CustomModuleDataCategory, CustomModuleDataValue } from '../utils/ct-types';
+import { getModule, getCustomDataCategory, getCustomDataValues } from '../utils/kv-store';
 
 /**
  * Appointment Details Entry Point
@@ -12,12 +12,16 @@ import type { CustomModule, CustomModuleDataCategory, CustomModuleDataValue } fr
  * - Using settings from key-value store (background color)
  */
 
+interface BackgroundColorSetting {
+    key: string;
+    value: string;
+}
+
 const AppointmentDetailsEntryPoint: EntryPoint<AppointmentDialogDetailData> = ({
     data,
     on,
     emit,
     element,
-    churchtoolsClient,
     KEY,
 }) => {
     console.log('[AppointmentDetails] Initializing');
@@ -46,40 +50,26 @@ const AppointmentDetailsEntryPoint: EntryPoint<AppointmentDialogDetailData> = ({
     async function loadBackgroundColor(): Promise<void> {
         try {
             // Get extension module
-            const extensionModule = await churchtoolsClient.get<CustomModule>(
-                `/custommodules/${KEY}`
-            );
-
-            // Get categories
-            const categories = await churchtoolsClient.get<CustomModuleDataCategory[]>(
-                `/custommodules/${extensionModule.id}/customdatacategories`
-            );
+            const extensionModule = await getModule(KEY);
 
             // Find settings category
-            const settingsCategory = categories.find((cat) => cat.shorty === 'settings');
+            const settingsCategory = await getCustomDataCategory<object>('settings');
             if (!settingsCategory) {
                 console.log('[AppointmentDetails] No settings category found, using default background');
                 return;
             }
 
             // Get values
-            const values = await churchtoolsClient.get<CustomModuleDataValue[]>(
-                `/custommodules/${extensionModule.id}/customdatacategories/${settingsCategory.id}/customdatavalues`
+            const values = await getCustomDataValues<BackgroundColorSetting>(
+                settingsCategory.id,
+                extensionModule.id
             );
 
             // Find backgroundColor value
-            const bgColorValue = values.find((v) => {
-                try {
-                    const parsed = JSON.parse(v.value);
-                    return parsed.key === 'backgroundColor';
-                } catch {
-                    return false;
-                }
-            });
+            const bgColorValue = values.find((v) => v.key === 'backgroundColor');
 
             if (bgColorValue) {
-                const parsed = JSON.parse(bgColorValue.value);
-                backgroundColor = parsed.value || '#ffffff';
+                backgroundColor = bgColorValue.value || '#ffffff';
                 console.log('[AppointmentDetails] Loaded background color:', backgroundColor);
             }
         } catch (error) {

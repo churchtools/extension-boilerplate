@@ -423,16 +423,6 @@ Creates a ZIP file: `releases/my-first-extension-v1.0.0-[git-hash].zip`
 
 This ZIP contains everything ChurchTools needs to run your extension.
 
-## Step 9: Test the Production Build
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-This serves the `dist/` folder so you can test the production bundle before deploying.
-
 ## Next Steps
 
 Congratulations! You've created your first ChurchTools extension. Here's what to explore next:
@@ -481,8 +471,7 @@ Learn about build modes and deployment:
 **Solutions**:
 1. Enable CORS in ChurchTools admin settings
 2. Add `http://localhost:5173` to allowed origins
-3. Restart ChurchTools (may be needed)
-4. For Safari: use HTTPS dev server or proxy (see main README)
+3. For Safari: use HTTPS dev server or proxy (see main README)
 
 ### Extension Not Hot-Reloading
 

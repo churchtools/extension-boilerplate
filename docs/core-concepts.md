@@ -5,19 +5,19 @@ This guide explains the fundamental concepts behind ChurchTools extensions.
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────┐
 │                      ChurchTools UI                          │
 │                                                              │
-│  ┌────────────────┐  ┌────────────────┐  ┌──────────────┐ │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌───────────────┐ │
 │  │ Extension Point │  │ Extension Point │  │Extension Point│ │
-│  │   (main)       │  │   (admin)      │  │  (calendar)  │ │
-│  └────────┬────────┘  └────────┬────────┘  └──────┬───────┘ │
+│  │   (main)        │  │   (admin)       │  │  (calendar)   │ │
+│  └────────┬────────┘  └────────┬────────┘  └───────┬───────┘ │
 │           │                    │                   │         │
 │           ▼                    ▼                   ▼         │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │           Extension Loader & Event Bus                  ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
+│  ┌──────────────────────────────────────────────────────────┐│
+│  │           Extension Loader & Event Bus                   ││
+│  └──────────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────────┘
                              │
                              │ loads
                              ▼
@@ -50,32 +50,8 @@ An extension point is defined by ChurchTools and provides:
 
 ### Available Extension Points
 
-ChurchTools provides several extension points:
-
-#### `main` - Main Module
-- **Location**: ChurchTools main menu → Your extension module
-- **Purpose**: Standalone module with its own navigation
-- **Best for**: Full-featured extensions, dashboards, custom workflows
-
-#### `admin` - Admin Configuration
-- **Location**: Admin → Extensions → Your Extension Settings
-- **Purpose**: Configuration interface for your extension
-- **Best for**: Extension settings, API key configuration
-
-#### `appointment-dialog-tab` - Calendar Dialog Tab
-- **Location**: Calendar appointment edit dialog, as a new tab
-- **Purpose**: Display custom appointment information
-- **Best for**: Availability checking, resource booking, integrations
-
-#### `appointment-dialog-detail` - Calendar Dialog Detail
-- **Location**: Calendar appointment edit dialog, below standard fields
-- **Purpose**: Add fields or information to the appointment form
-- **Best for**: Custom fields, external data, validation
-
-#### `finance-tab` - Finance Module Tab
-- **Location**: Finance module, as a new tab
-- **Purpose**: Display custom financial information or reports
-- **Best for**: Custom reports, external accounting integrations
+ChurchTools provides official documentation for all available extension points. The documuentation is located here:
+- **[ChurchTools Extension Points](https://github.com/churchtools/churchtools-extension-points)** - Extension point contracts (type definitions and events)
 
 ### Extension Point Contracts
 
@@ -270,14 +246,6 @@ const myEntry: EntryPoint = ({ emit }) => {
   });
 };
 ```
-
-### Event Best Practices
-
-1. **Use descriptive names**: `data:loaded` not `loaded`
-2. **Follow naming conventions**: `noun:verb` pattern
-3. **Document events**: List all events your extension emits
-4. **Clean up listeners**: Use `off()` in cleanup function
-5. **Handle errors**: Emit error events when things fail
 
 ## Extension Lifecycle
 
@@ -570,6 +538,96 @@ try {
 
 See [API Reference](api-reference.md) for complete documentation.
 
+## Key-Value Store
+
+Extensions can persist data using the ChurchTools key-value store. This is useful for storing settings, user preferences, cached data, and application state.
+
+### Storage Hierarchy
+
+```
+Extension Module (identified by extension key)
+└── Data Categories (organize related data)
+    └── Data Values (actual key-value pairs)
+```
+
+### Basic Usage
+
+The boilerplate includes utilities in `src/utils/kv-store.ts`:
+
+```typescript
+import {
+  getOrCreateModule,
+  getCustomDataCategory,
+  createCustomDataCategory,
+  getCustomDataValues,
+  createCustomDataValue,
+  updateCustomDataValue,
+} from '../utils/kv-store';
+
+// Get or create module (development mode)
+const module = await getOrCreateModule(
+  KEY,
+  'My Extension',
+  'Extension description'
+);
+
+// Get or create a category
+let category = await getCustomDataCategory<object>('settings');
+if (!category) {
+  await createCustomDataCategory({
+    customModuleId: module.id,
+    name: 'Settings',
+    shorty: 'settings',
+    description: 'User preferences',
+  }, module.id);
+  category = await getCustomDataCategory<object>('settings');
+}
+
+// Load values with type safety
+interface Setting {
+  key: string;
+  value: string;
+}
+
+const values = await getCustomDataValues<Setting>(category.id, module.id);
+const theme = values.find(v => v.key === 'theme');
+
+// Save value
+if (theme) {
+  await updateCustomDataValue(category.id, theme.id, {
+    value: JSON.stringify({ key: 'theme', value: 'dark' }),
+  }, module.id);
+} else {
+  await createCustomDataValue({
+    dataCategoryId: category.id,
+    value: JSON.stringify({ key: 'theme', value: 'dark' }),
+  }, module.id);
+}
+```
+
+### Type-Safe Storage
+
+Use TypeScript generics for type-safe data access:
+
+```typescript
+interface UserPreferences {
+  theme: 'light' | 'dark';
+  language: string;
+  notifications: boolean;
+}
+
+const prefs = await getCustomDataValues<UserPreferences>(categoryId, moduleId);
+```
+
+### Common Use Cases
+
+- **Settings Storage**: Save user preferences and configuration
+- **Cache**: Store cached API responses
+- **State Management**: Persist application state
+- **User Data**: Store user-specific information
+
+See [Key-Value Store Guide](key-value-store.md) for complete documentation with patterns and best practices.
+
 ## Multi-Extension Support
 
 Multiple extensions can run simultaneously without conflicts.
@@ -598,10 +656,12 @@ Multiple extensions can run simultaneously without conflicts.
 4. **Events** - Bidirectional communication between ChurchTools and extensions
 5. **Lifecycle** - Load → Render → Run → Cleanup
 6. **Type Safety** - Full TypeScript support for contracts and APIs
+7. **Key-Value Store** - Persistent storage for settings and data
 
 **Next Steps**:
 
 - [Entry Points Guide](entry-points.md) - Learn how to create entry points
 - [Communication](communication.md) - Master event communication
+- [Key-Value Store Guide](key-value-store.md) - Persist data in ChurchTools
 - [Build & Deploy](build-and-deploy.md) - Build and deploy your extension
 - [API Reference](api-reference.md) - Complete API documentation

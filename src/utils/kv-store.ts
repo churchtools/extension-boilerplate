@@ -4,6 +4,7 @@
 import { churchtoolsClient } from "@churchtools/churchtools-client";
 import type {
     CustomModule,
+    CustomModuleCreate,
     CustomModuleDataCategory,
     CustomModuleDataCategoryCreate,
     CustomModuleDataValue,
@@ -41,7 +42,42 @@ export async function getModule(
     console.log(`Module ${extensionkey} found:`, module);
 
     return module;
-} /**
+}
+
+export async function getOrCreateModule(
+    extensionkey: string,
+    name: string,
+    description: string
+): Promise<CustomModule> {
+    try {
+        return await getModule(extensionkey);
+    } catch {
+        return await createModule(extensionkey, name, description);
+    }
+}
+
+async function createModule(
+    extensionkey: string,
+    name: string,
+    description: string
+): Promise<CustomModule> {
+    const createData: CustomModuleCreate = {
+        name: name,
+        shorty: extensionkey,
+        description: description,
+        sortKey: 100,
+    };
+
+    const newModule = await churchtoolsClient.post<CustomModule>(
+        '/custommodules',
+        createData
+    );
+
+    console.log(`Created new module for ${extensionkey}:`, newModule);
+    return newModule;
+}
+
+/**
  * Resolves module id either on provided number or using the getModule function
  * @param moduleId optional if known
  * @returns moduleId
@@ -111,17 +147,19 @@ export async function getCustomDataCategory<T extends object>(
  * Implements: POST `/custommodules/{moduleId}/customdatacategories`
  * @param payload new data to be saved
  * @param moduleId - optional module id - otherwise tries default
+ * @returns - the created category
  */
 export async function createCustomDataCategory(
     payload: CustomModuleDataCategoryCreate,
     moduleId?: number,
-): Promise<void> {
+): Promise<CustomModuleDataCategory> {
     moduleId = await resolveModuleId(moduleId);
     const newCategory: CustomModuleDataCategory = await churchtoolsClient.post(
         `/custommodules/${moduleId}/customdatacategories`,
         payload,
     );
     console.log(`Created category in module ${moduleId}:`, newCategory);
+    return newCategory;
 }
 
 /**

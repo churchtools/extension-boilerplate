@@ -18,6 +18,7 @@ Extensions are built with modern web technologies (TypeScript, React, Vue, etc.)
 - **🎯 Extension Points** - Integrate your code at specific locations in ChurchTools UI
 - **🔌 Entry Points** - Define multiple entry points for different UI locations
 - **🔄 Event Communication** - Bidirectional event-based communication with ChurchTools
+- **💾 Key-Value Store** - Persistent storage for settings, preferences, and data
 - **🏗️ Multi-Extension Support** - Multiple extensions can coexist without conflicts
 - **📦 Build Modes** - Simple (single bundle) or Advanced (code splitting) modes
 - **🔒 Type-Safe** - Full TypeScript support with extension point contracts
@@ -122,6 +123,7 @@ Creates a ZIP file in `releases/` ready to upload to ChurchTools.
 - **[Core Concepts](docs/core-concepts.md)** - Understanding extensions, entry points, and contracts
 - **[Entry Points Guide](docs/entry-points.md)** - Creating and registering entry points
 - **[Communication](docs/communication.md)** - Event-based bidirectional communication
+- **[Key-Value Store](docs/key-value-store.md)** - Persist settings and data in ChurchTools
 - **[Build & Deploy](docs/build-and-deploy.md)** - Building, testing, and deployment
 - **[Manifest Reference](docs/manifest.md)** - Complete manifest.json documentation
 - **[API Reference](docs/api-reference.md)** - Complete API documentation
@@ -300,6 +302,43 @@ const communicatingEntry: EntryPoint<CalendarData> = ({ data, on, emit, element 
   return () => {
     console.log('Cleanup');
   };
+};
+```
+
+### Entry Point with Persistent Storage
+
+```typescript
+import { getModule, getCustomDataCategory, getCustomDataValues } from '../utils/kv-store';
+
+interface Setting {
+  key: string;
+  value: string;
+}
+
+const settingsEntry: EntryPoint = async ({ element, KEY }) => {
+  // Load saved settings from key-value store
+  try {
+    const module = await getModule(KEY);
+    const category = await getCustomDataCategory<object>('settings');
+
+    let theme = 'light';
+    if (category) {
+      const values = await getCustomDataValues<Setting>(category.id, module.id);
+      const themeSetting = values.find(v => v.key === 'theme');
+      if (themeSetting) {
+        theme = themeSetting.value;
+      }
+    }
+
+    element.innerHTML = `
+      <div>
+        <p>Current theme: ${theme}</p>
+        <p>Settings are persisted in ChurchTools</p>
+      </div>
+    `;
+  } catch (error) {
+    element.innerHTML = `<p>Using default settings</p>`;
+  }
 };
 ```
 

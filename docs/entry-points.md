@@ -443,14 +443,7 @@ return () => {
 };
 ```
 
-### 5. Emit Meaningful Events
-
-Use descriptive event names:
-
-✅ **Good**: `persons:loaded`, `data:error`, `save:success`
-❌ **Bad**: `loaded`, `error`, `done`
-
-### 6. Document Your Entry Points
+### 5. Document Your Entry Points
 
 Add comments explaining what each entry point does:
 

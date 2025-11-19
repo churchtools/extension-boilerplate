@@ -163,16 +163,29 @@ Common values: `MIT`, `Apache-2.0`, `GPL-3.0`, `BSD-3-Clause`, `proprietary`
 
 ---
 
-#### `image` (string)
+#### `icon` (string)
 **URL to extension icon/logo** for the ChurchTools store.
 
 ```json
-"image": "https://cdn.example.com/my-extension-icon.png"
+"icon": "https://cdn.example.com/my-extension-icon.png"
 ```
 
 - Recommended size: 256x256px
 - Formats: PNG, JPG, SVG
 - Used in: Extension store, admin UI
+
+---
+
+#### `images` (array)
+**URL to extension screenshots/images** for the ChurchTools store.
+
+```json
+"images": ["https://cdn.example.com/my-extension-screen1.png"]
+```
+
+- Recommended size: 1920x1024px
+- Formats: PNG, JPG, SVG
+- Used in: Extension store
 
 ---
 
@@ -206,7 +219,7 @@ Common values: `MIT`, `Apache-2.0`, `GPL-3.0`, `BSD-3-Clause`, `proprietary`
   - Examples: `calendar-dialog-availability`, `person-details-sidebar`
 
 - **`entryPoint`** (string, required) - Name of entry point in your extension
-  - Must match an entry point registered in `src/loaders.ts`
+  - Must match an entry point registered in `src/entry-points/index.ts`
   - Examples: `calendarAvailability`, `personSidebar`
 
 - **`title`** (string, optional) - Human-readable title for this integration
@@ -214,9 +227,6 @@ Common values: `MIT`, `Apache-2.0`, `GPL-3.0`, `BSD-3-Clause`, `proprietary`
 
 - **`description`** (string, optional) - What this integration provides
   - Helps admins understand the feature
-
-- **`enabled`** (boolean, optional, default: true) - Whether enabled by default
-  - ChurchTools admins can override this
 
 **Example mapping:**
 
@@ -235,125 +245,52 @@ ChurchTools Extension Point ID → Your Entry Point
 
 ```json
 "permissions": [
-  "read:calendar",
-  "write:calendar",
-  "read:persons"
+  "churchdb view",
+  "churchdb create person",
 ]
 ```
 
 ChurchTools will:
 - Show permissions during installation
-- Enforce permissions at runtime
 - Allow admins to review what extensions can access
-
-**Common permissions:**
-- `read:calendar` - Read calendar events
-- `write:calendar` - Create/modify events
-- `read:persons` - Read person data
-- `write:persons` - Modify person data
-- `read:groups` - Read group data
-- `admin:settings` - Access admin settings
-
-**Note:** ChurchTools will define the full permission model.
-
----
-
-#### `minChurchToolsVersion` (string)
-**Minimum ChurchTools version** required.
-
-```json
-"minChurchToolsVersion": "3.0.0"
-```
-
-- Format: Semantic version (`MAJOR.MINOR.PATCH`)
-- ChurchTools will prevent installation on older versions
-
----
-
-#### `maxChurchToolsVersion` (string)
-**Maximum ChurchTools version** supported (optional).
-
-```json
-"maxChurchToolsVersion": "4.0.0"
-```
-
-Useful if you know your extension won't work with future versions.
-
----
-
-#### `settings` (object)
-**Extension settings schema** for admin configuration UI.
-
-```json
-"settings": {
-  "apiKey": {
-    "type": "string",
-    "label": "External API Key",
-    "description": "Your API key from the external service",
-    "required": true
-  },
-  "syncInterval": {
-    "type": "number",
-    "label": "Sync Interval (minutes)",
-    "default": 30,
-    "min": 5,
-    "max": 1440
-  }
-}
-```
-
-ChurchTools can use this to auto-generate a settings UI in the admin panel.
-
----
-
-#### `dependencies` (object)
-**External dependencies** ChurchTools should load.
-
-```json
-"dependencies": {
-  "moment": "^2.29.4",
-  "chart.js": "^4.0.0"
-}
-```
-
-ChurchTools can load these from CDN before loading your extension.
-
-**Note:** Prefer bundling dependencies. Only use this for large libraries to avoid duplication.
 
 ---
 
 ## Extension Point Registry
 
-ChurchTools will provide official documentation for all available extension points. Here are examples:
+ChurchTools will provide official documentation for all available extension points. The documuentation is located here:
+- **[ChurchTools Extension Points](https://github.com/churchtools/churchtools-extension-points)** - Extension point contracts (type definitions and events)
+
+Here are examples:
 
 ### Module Extension Points
 
 **`main`**
 - **Location:** ChurchTools main menu → Extension module
 - **Purpose:** Render extension as a standalone module with its own menu entry
-- **Data:** `{ userId, permissions, settings }`
-- **Events:** `settings:changed`, `permissions:changed`
+- **Data:** `{}`
+- **Events:** none
 
 **`admin`**
 - **Location:** Admin → Extensions → Extension Settings
 - **Purpose:** Render admin configuration interface for the extension
-- **Data:** `{ settings, extensionInfo }`
-- **Events:** `settings:reload`
+- **Data:** `{ extensionInfo }`
+- **Events:** none
 
-### Calendar Extension Points
+### Calendar Extension Points (examples)
 
 **`calendar-dialog-availability`**
 - **Location:** Calendar event edit dialog
 - **Purpose:** Show availability, suggest alternative times
-- **Data:** `{ selectedDate, selectedTime, duration }`
-- **Events:** `date:changed`, `time:changed`, `dialog:closing`
+- **Data:** `{ currentAppointment, masterData }`
+- **Events:** `appointment:changed`, `dialog:closing`
 
 **`calendar-event-list-item`**
 - **Location:** Calendar event list view
 - **Purpose:** Add custom badges, icons, or actions to events
 - **Data:** `{ eventId, eventTitle, startDate, endDate }`
 
-### Person Extension Points
+### Person Extension Points (examples)
 
 **`person-details-sidebar`**
 - **Location:** Person details page, right sidebar
@@ -366,7 +303,7 @@ ChurchTools will provide official documentation for all available extension poin
 - **Purpose:** Add custom bulk actions
 - **Data:** `{ selectedPersonIds }`
 
-### Event Extension Points
+### Event Extension Points (examples)
 
 **`event-registration-form`**
 - **Location:** Event registration form
@@ -395,14 +332,14 @@ ChurchTools will provide official documentation for all available extension poin
     "url": "https://github.com/calendar-solutions/ct-advanced-calendar.git"
   },
   "license": "MIT",
-  "image": "https://calendarsolutions.com/assets/ct-extension-icon.png",
+  "logo": "https://calendarsolutions.com/assets/ct-extension-icon.png",
+  "images": ["https://calendarsolutions.com/assets/ct-extension-screen1.png"],
   "extensionPoints": [
     {
       "id": "main",
       "entryPoint": "mainModule",
       "title": "Calendar Tools Module",
       "description": "Main dashboard with calendar tools and analytics",
-      "enabled": true
     },
     {
       "id": "admin",
@@ -415,7 +352,6 @@ ChurchTools will provide official documentation for all available extension poin
       "entryPoint": "availabilityChecker",
       "title": "Availability Checker",
       "description": "Shows team member availability and suggests optimal meeting times",
-      "enabled": true
     },
     {
       "id": "calendar-event-list-item",
@@ -431,11 +367,8 @@ ChurchTools will provide official documentation for all available extension poin
     }
   ],
   "permissions": [
-    "read:calendar",
-    "read:persons",
-    "read:groups"
+    "churchcal view",
   ],
-  "minChurchToolsVersion": "3.0.0",
   "settings": {
     "googleCalendarApiKey": {
       "type": "string",
@@ -530,33 +463,7 @@ When you upload the ZIP to ChurchTools, it will:
 3. **Validate** the manifest structure
 4. **Check** compatibility (min/max versions)
 5. **Display** extension info to admin
-6. **Request** permission approval
-7. **Install** extension to `/ccm/{key}/` or `/extensions/{key}/`
-
-### Loading Extension Points
-
-ChurchTools loads extension points based on manifest:
-
-```javascript
-// ChurchTools reads manifest
-const manifest = JSON.parse(fs.readFileSync('dist/manifest.json'));
-
-// For each extension point
-manifest.extensionPoints.forEach(async (ep) => {
-  // Load the extension
-  const ext = await import(`/ccm/${manifest.key}/extension.es.js`);
-
-  // Load the specified entry point
-  const entryPoint = await ext.loadEntryPoint(ep.entryPoint);
-
-  // Render it in the appropriate location
-  const instance = await ext.renderExtension(
-    getDivIdForExtensionPoint(ep.id),
-    entryPoint,
-    getDataForExtensionPoint(ep.id)
-  );
-});
-```
+6**Install** extension to `/ccm/{key}/` or `/extensions/{key}/`
 
 ## Validation
 

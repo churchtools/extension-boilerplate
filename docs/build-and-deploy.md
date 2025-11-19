@@ -156,32 +156,13 @@ Most settings are automatically configured based on `VITE_BUILD_MODE`.
 
 ## Testing
 
-### Preview Production Build
-
-Test the production build locally:
-
-```bash
-npm run preview
-```
-
-This serves the `dist/` folder at `http://localhost:4173`.
-
-**Test checklist**:
-- [ ] Extension loads without errors
-- [ ] All entry points work correctly
-- [ ] API calls succeed
-- [ ] Events work as expected
-- [ ] No console errors
-- [ ] Assets load correctly
-
 ### Manual Testing
 
 1. Build the extension: `npm run build`
-2. Preview: `npm run preview`
-3. Open browser to `http://localhost:4173`
-4. Test all extension points
-5. Check browser console for errors
-6. Test with browser DevTools network tab open
+2. Start dev mode: `npm run dev`
+3. Test all extension points
+4. Check browser console for errors
+5. Test with browser DevTools network tab open
 
 ## Deployment
 
@@ -325,7 +306,7 @@ git push origin main --tags
 
 1. Run local tests: `npm test` (if configured)
 2. Build: `npm run build`
-3. Preview: `npm run preview`
+3. Start dev mode: `npm run dev`
 4. Manual testing checklist
 5. Check console for errors
 6. Test all entry points

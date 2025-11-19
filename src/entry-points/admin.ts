@@ -1,13 +1,14 @@
 import type { EntryPoint } from '../lib/main';
 import type { AdminData } from '@churchtools/extension-points/admin';
-import type {
-    CustomModule,
-    CustomModuleCreate,
-    CustomModuleDataCategory,
-    CustomModuleDataCategoryCreate,
-    CustomModuleDataValue,
-    CustomModuleDataValueCreate,
-} from '../utils/ct-types';
+import type { CustomModuleDataCategory, CustomModuleDataValue } from '../utils/ct-types';
+import {
+    getOrCreateModule,
+    getCustomDataCategory,
+    createCustomDataCategory,
+    getCustomDataValues,
+    createCustomDataValue,
+    updateCustomDataValue,
+} from '../utils/kv-store';
 
 /**
  * Admin Configuration Entry Point
@@ -16,11 +17,16 @@ import type {
  * Settings are stored in ChurchTools extension key-value store.
  */
 
-const adminEntryPoint: EntryPoint<AdminData> = ({ data, emit, element, churchtoolsClient, KEY }) => {
+interface BackgroundColorSetting {
+    key: string;
+    value: string;
+}
+
+const adminEntryPoint: EntryPoint<AdminData> = ({ data, emit, element, KEY }) => {
     console.log('[Admin] Initializing');
     console.log('[Admin] Extension info:', data.extensionInfo);
 
-    let extensionModule: CustomModule | null = null;
+    let moduleId: number | null = null;
     let settingsCategory: CustomModuleDataCategory | null = null;
     let backgroundColorValue: CustomModuleDataValue | null = null;
     let currentBackgroundColor = '#ffffff';
@@ -35,16 +41,21 @@ const adminEntryPoint: EntryPoint<AdminData> = ({ data, emit, element, churchtoo
             isLoading = true;
             render();
 
-            // Step 1: Get or create the extension module
-            extensionModule = await getOrCreateExtensionModule();
+            // Step 1: Get the extension module
+            const extensionModule = await getOrCreateModule(
+                KEY,
+                data.extensionInfo?.name || 'Extension',
+                data.extensionInfo?.description || 'A ChurchTools Extension'
+            );
+            moduleId = extensionModule.id;
             console.log('[Admin] Extension module:', extensionModule);
 
             // Step 2: Get or create the settings category
-            settingsCategory = await getOrCreateSettingsCategory(extensionModule.id);
+            settingsCategory = await getOrCreateSettingsCategory();
             console.log('[Admin] Settings category:', settingsCategory);
 
             // Step 3: Load background color setting
-            await loadBackgroundColor(extensionModule.id, settingsCategory.id);
+            await loadBackgroundColor(settingsCategory.id);
 
             isLoading = false;
             errorMessage = '';
@@ -57,56 +68,10 @@ const adminEntryPoint: EntryPoint<AdminData> = ({ data, emit, element, churchtoo
         }
     }
 
-    // Get extension module by key, or create it in development mode
-    async function getOrCreateExtensionModule(): Promise<CustomModule> {
-        try {
-            // Try to get existing module
-            const module = await churchtoolsClient.get<CustomModule>(
-                `/custommodules/${KEY}`
-            );
-            return module;
-        } catch (error) {
-            console.log('[Admin] Extension module not found, checking if we should create it');
-
-            // Only create in development mode
-            if (import.meta.env.MODE !== 'development') {
-                throw new Error(
-                    'Extension module not registered in ChurchTools. ' +
-                        'Please register it through ChurchTools admin first.'
-                );
-            }
-
-            console.log('[Admin] Development mode: Creating extension module');
-
-            // Create module in development
-            const createData: CustomModuleCreate = {
-                name: data.extensionInfo?.name || 'Extension',
-                shorty: KEY || 'ext',
-                description: data.extensionInfo?.description || 'ChurchTools Extension',
-                sortKey: 100,
-            };
-
-            const created = await churchtoolsClient.post<CustomModule>(
-                '/custommodules',
-                createData
-            );
-
-            console.log('[Admin] Created extension module:', created);
-            return created;
-        }
-    }
-
     // Get or create the "settings" category
-    async function getOrCreateSettingsCategory(
-        moduleId: number
-    ): Promise<CustomModuleDataCategory> {
-        // Get all categories for this module
-        const categories = await churchtoolsClient.get<CustomModuleDataCategory[]>(
-            `/custommodules/${moduleId}/customdatacategories`
-        );
-
-        // Check if settings category exists
-        const existing = categories.find((cat) => cat.shorty === 'settings');
+    async function getOrCreateSettingsCategory(): Promise<CustomModuleDataCategory> {
+        // Try to get existing settings category
+        const existing = await getCustomDataCategory<object>('settings');
         if (existing) {
             return existing;
         }
@@ -114,48 +79,37 @@ const adminEntryPoint: EntryPoint<AdminData> = ({ data, emit, element, churchtoo
         console.log('[Admin] Creating settings category');
 
         // Create settings category
-        const createData: CustomModuleDataCategoryCreate = {
-            customModuleId: moduleId,
+        const created = await createCustomDataCategory({
+            customModuleId: moduleId!,
             name: 'Settings',
             shorty: 'settings',
             description: 'Extension configuration settings',
-        };
+        }, moduleId!);
 
-        const created = await churchtoolsClient.post<CustomModuleDataCategory>(
-            `/custommodules/${moduleId}/customdatacategories`,
-            createData
-        );
+        if (!created) {
+            throw new Error('Failed to create settings category');
+        }
 
         return created;
     }
 
     // Load background color from key-value store
-    async function loadBackgroundColor(moduleId: number, categoryId: number): Promise<void> {
-        const values = await churchtoolsClient.get<CustomModuleDataValue[]>(
-            `/custommodules/${moduleId}/customdatacategories/${categoryId}/customdatavalues`
-        );
+    async function loadBackgroundColor(categoryId: number): Promise<void> {
+        const values = await getCustomDataValues<BackgroundColorSetting>(categoryId, moduleId!);
 
         // Find backgroundColor value
-        const bgColorValue = values.find((v) => {
-            // The value structure might contain metadata, try to parse it
-            try {
-                const parsed = JSON.parse(v.value);
-                return parsed.key === 'backgroundColor';
-            } catch {
-                return false;
-            }
-        });
+        const bgColorValue = values.find((v) => v.key === 'backgroundColor');
 
         if (bgColorValue) {
-            backgroundColorValue = bgColorValue;
-            const parsed = JSON.parse(bgColorValue.value);
-            currentBackgroundColor = parsed.value || '#ffffff';
+            // Store the original value object for updates
+            backgroundColorValue = bgColorValue as any;
+            currentBackgroundColor = bgColorValue.value || '#ffffff';
         }
     }
 
     // Save background color to key-value store
     async function saveBackgroundColor(color: string): Promise<void> {
-        if (!extensionModule || !settingsCategory) {
+        if (!moduleId || !settingsCategory) {
             throw new Error('Extension not initialized');
         }
 
@@ -166,24 +120,25 @@ const adminEntryPoint: EntryPoint<AdminData> = ({ data, emit, element, churchtoo
 
         if (backgroundColorValue) {
             // Update existing value
-            await churchtoolsClient.put(
-                `/custommodules/${extensionModule.id}/customdatacategories/${settingsCategory.id}/customdatavalues/${backgroundColorValue.id}`,
-                { value: valueData }
+            await updateCustomDataValue(
+                settingsCategory.id,
+                backgroundColorValue.id,
+                { value: valueData },
+                moduleId
             );
             backgroundColorValue.value = valueData;
         } else {
             // Create new value
-            const createData: CustomModuleDataValueCreate = {
-                dataCategoryId: settingsCategory.id,
-                value: valueData,
-            };
-
-            const created = await churchtoolsClient.post<CustomModuleDataValue>(
-                `/custommodules/${extensionModule.id}/customdatacategories/${settingsCategory.id}/customdatavalues`,
-                createData
+            await createCustomDataValue(
+                {
+                    dataCategoryId: settingsCategory.id,
+                    value: valueData,
+                },
+                moduleId
             );
 
-            backgroundColorValue = created;
+            // Reload to get the created value
+            await loadBackgroundColor(settingsCategory.id);
         }
 
         currentBackgroundColor = color;
