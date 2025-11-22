@@ -154,17 +154,18 @@ const values = await getCustomDataValues<UserSettings>(categoryId);
 const bgColor = values.find(v => v.key === 'backgroundColor');
 ```
 
-#### `createCustomDataValue(payload: CustomModuleDataValueCreate, moduleId?: number): Promise<void>`
+#### `createCustomDataValue(payload: CustomModuleDataValueCreate, moduleId?: number): Promise<CustomModuleDataValue>`
 
 Creates a new value in a category.
 
 ```typescript
 import { createCustomDataValue } from '../utils/kv-store';
 
-await createCustomDataValue({
+const newValue = await createCustomDataValue({
     dataCategoryId: categoryId,
     value: JSON.stringify({ key: 'theme', value: 'dark' }),
 });
+console.log('Created value with ID:', newValue.id);
 ```
 
 #### `updateCustomDataValue(categoryId: number, valueId: number, payload: Partial<CustomModuleDataValue>, moduleId?: number): Promise<void>`
