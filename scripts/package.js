@@ -47,8 +47,10 @@ if (!fs.existsSync(distDir)) {
 }
 
 try {
-    // Create ZIP archive using system zip command
-    const zipCommand = `cd "${rootDir}" && zip -r "${archivePath}" dist/ -x "*.map" "*.DS_Store"`;
+    // Create ZIP archive using system zip command or PowerShell on Windows
+    const zipCommand = os.platform() === 'win32'
+        ? `powershell -WorkingDirectory "${rootDir}" -ExecutionPolicy Unrestricted -Command "Compress-Archive -Path 'dist/*' -DestinationPath '${archivePath}' -Force"`
+        : `cd "${rootDir}" && zip -r "${archivePath}" dist/ -x "*.map" "*.DS_Store"`;
     execSync(zipCommand, { stdio: 'inherit' });
     
     console.log('✅ Package created successfully!');
