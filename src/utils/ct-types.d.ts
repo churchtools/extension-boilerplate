@@ -3285,9 +3285,7 @@ export type GroupMember = {
     memberEndDate?: DateStringNullable;
     memberStartDate: ZuluDateNullable;
     person: DomainObjectPerson;
-    personFields?: Array<{
-        [key: string]: unknown;
-    }>;
+    personFields?: Record<string, unknown>;
     /**
      * use person.domainIdentifier (type: string) instead.
      *

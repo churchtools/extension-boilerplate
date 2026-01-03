@@ -1,5 +1,23 @@
-<ul>
-  <li *ngFor="let groupMember of groupMembers()">
-    <pre><code>{{ groupMember | json }}</code></pre>
-  </li>
-</ul>
+<div class="year-list">
+  <div *ngFor="let group of (groups$ | async)" class="member-item">
+    <h3>{{ group.title }}</h3>
+  </div>
+</div>
+
+<div>--------------------------------------------------------------------------------------------------------------------------------</div>
+
+<div class="member-list">
+  <div *ngFor="let groupMember of (groupMembers$ | async)" class="member-item">
+    <h3>{{ groupMember.person.title}}</h3>
+    <h3>{{ groupMember.personFields?.sexId}}</h3>
+    
+    <ul>
+      <li>Age: {{ getAge(groupMember.personFields?.birthday) }}</li>
+      
+      <li>Stammeszugehörigkeit: {{ getExtraField(groupMember, 'Stammeszugehörigkeit') }}</li>
+      <li>Wunsch 1: {{ getExtraField(groupMember, 'Wunsch 1') }}</li>
+      <li>Wunsch 2: {{ getExtraField(groupMember, 'Wunsch 2') }}</li>
+    </ul>
+    <hr>
+  </div>
+</div>

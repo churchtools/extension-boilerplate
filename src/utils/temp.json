@@ -1,0 +1,114 @@
+{
+    "id": 410,
+    "personId": 173,
+    "group": {
+        "title": "Kids 2026 Teilnehmer - Test",
+        "domainType": "group",
+        "domainIdentifier": "32",
+        "apiUrl": "https://sola-hannover.church.tools/api/groups/32",
+        "frontendUrl": "https://sola-hannover.church.tools/groups/32",
+        "imageUrl": "https://sola-hannover.church.tools/images/133/2bd4db73443f95660c36398ef6678bbfd067413d90ff0434f6fb5c3e0e0eda96",
+        "icon": "users",
+        "color": {
+            "key": "green",
+            "shade": null
+        },
+        "initials": "K",
+        "domainAttributes": {
+            "note": "Das Sommerlager für alle Kids zwischen 9 und 11 Jahren.\nDieses Sola wird anders als alles, was du bisher erlebt hast! \n\nHier kannst du dein Kind für die Teilnahme am Sola anmelden. Es ist auch möglich weitere eigene Kinder anzumelden. Zunächst muss jedoch deine Email-Adresse bestätigt werden. Hierfür wird dir ein Link zugesandt, über den du dann zu einem Anmeldeformular gelangst, das alle relevanten Daten abfragt. Die hierfür verwendete Emailadresse werden wir dann für die Kommunikation der Informationen rund um die Solawoche nutzen.",
+            "groupStatusId": 1,
+            "groupTypeId": 5,
+            "campusId": null,
+            "visibility": "public",
+            "guid": "72A55C73-6993-4235-A5A9-02B67C0A1F2E"
+        },
+        "infos": [
+            "Solawoche"
+        ]
+    },
+    "person": {
+        "title": "Lylly Bär",
+        "domainType": "person",
+        "domainIdentifier": "173",
+        "apiUrl": "https://sola-hannover.church.tools/api/persons/173",
+        "frontendUrl": "https://sola-hannover.church.tools/?q=churchdb#PersonView/searchEntry:%23173/",
+        "imageUrl": null,
+        "icon": "user",
+        "color": null,
+        "initials": "LB",
+        "domainAttributes": {
+            "firstName": "Lylly",
+            "lastName": "Bär",
+            "guid": "73275E9C-569D-4B6A-B645-EF5F3D57BB50",
+            "dateOfDeath": null,
+            "isArchived": false
+        },
+        "infos": []
+    },
+    "groupTypeRoleId": 32,
+    "roleChangedDate": "2026-01-03T11:53:00Z",
+    "groupMemberStatus": "active",
+    "statusChangedDate": "2026-01-03T11:53:00Z",
+    "memberStartDate": "2026-01-03",
+    "registeredBy": 170,
+    "waitinglistPosition": null,
+    "comment": "Anfrage über externes Formular",
+    "memberEndDate": null,
+    "@deprecated": {
+        "personId": "person.domainIdentifier"
+    },
+    "fields": [
+        {
+            "id": 8,
+            "name": "Ernährungsform",
+            "value": "Vegetarisch",
+            "sortKey": 102508
+        },
+        {
+            "id": 11,
+            "name": "Besonderheiten",
+            "value": "Nein",
+            "sortKey": 112508
+        },
+        {
+            "id": 20,
+            "name": "Telefon Erziehungsberechtige",
+            "value": "0178565656",
+            "sortKey": 122508
+        },
+        {
+            "id": 23,
+            "name": "E-Mail Erziehungsberechtige",
+            "value": "risipisi.s.99@gmail.com",
+            "sortKey": 132508
+        },
+        {
+            "id": 14,
+            "name": "Wunsch 1",
+            "value": "Kuh, Helga",
+            "sortKey": 142508
+        },
+        {
+            "id": 17,
+            "name": "Wunsch 2",
+            "value": "Kuh, Berta",
+            "sortKey": 152508
+        },
+        {
+            "id": 174,
+            "name": "Teilnahmebedingungen akzeptieren",
+            "value": "1",
+            "sortKey": 157508
+        },
+        {
+            "id": 177,
+            "name": "Teilnahmebeitrag",
+            "value": "150",
+            "sortKey": 157509
+        }
+    ],
+    "personFields": {
+        "birthday": "2020-12-19",
+        "sexID": {}
+    }
+}
