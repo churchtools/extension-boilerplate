@@ -9,11 +9,12 @@
 <div class="member-list">
   <div *ngFor="let groupMember of (groupMembers$ | async)" class="member-item">
     <h3>{{ groupMember.person.title}}</h3>
-    <h3>{{ groupMember.personFields?.sexId}}</h3>
     
     <ul>
+      <li>{{ groupMember.personFields?.zip }}</li>
+      <li>{{ groupMember.personFields?.city }}</li>
+      <li>{{ groupMember.personFields?.sexId }}</li>
       <li>Age: {{ getAge(groupMember.personFields?.birthday) }}</li>
-      
       <li>Stammeszugehörigkeit: {{ getExtraField(groupMember, 'Stammeszugehörigkeit') }}</li>
       <li>Wunsch 1: {{ getExtraField(groupMember, 'Wunsch 1') }}</li>
       <li>Wunsch 2: {{ getExtraField(groupMember, 'Wunsch 2') }}</li>

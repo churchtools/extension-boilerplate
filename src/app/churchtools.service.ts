@@ -41,7 +41,7 @@ export class ChurchtoolsService {
         (loggedIn) => loggedIn === true),
       switchMap(
         (file) => from(
-          churchtoolsClient.get<GroupMember[]>(`/groups/${group}/members?limit=200&personFields[]=birthday&personFields[]=sexID`)
+          churchtoolsClient.get<GroupMember[]>(`/groups/${group}/members?limit=200&personFields[]=birthday&personFields[]=sexId&personFields[]=zip&personFields[]=city`)
         )
       )
     );
