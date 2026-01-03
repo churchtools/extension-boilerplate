@@ -28,13 +28,10 @@ export class App implements OnInit {
       const today = new Date();
       
       let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-  
-      // Adjust if the birthday hasn't happened yet this year
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      const monthDiff = 7 - birthDate.getMonth();
+      if (monthDiff < 0 ) {
         age--;
       }
-  
       return age;
     }
   // Inside your App component class
