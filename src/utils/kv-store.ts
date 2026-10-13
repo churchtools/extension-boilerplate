@@ -119,8 +119,8 @@ export async function getCustomDataCategories<T extends object>(
         parsedData = safeParseJSON(data, {} as T);
 
         return {
-            ...rest,
             ...parsedData,
+            ...rest,
         };
     });
 }
@@ -229,8 +229,8 @@ export async function getCustomDataValues<T extends object>(
         let parsedData = safeParseJSON(value, {} as T);
 
         return {
-            ...rest,
             ...parsedData,
+            ...rest,
         };
     });
 }

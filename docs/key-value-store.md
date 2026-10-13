@@ -37,6 +37,8 @@ In **development mode**, the module can be automatically created using `getOrCre
 
 **Values** are the actual key-value pairs stored within a category. Each value is a JSON string that can store any serializable data.
 
+The read helpers merge parsed JSON fields with API metadata. When a field name occurs in both, the API metadata takes priority. Avoid metadata names such as `id` and `dataCategoryId` for custom fields. Category metadata also includes `customModuleId`, `name`, `shorty`, and `description`. Field names are case-sensitive: `ID` does not conflict with `id`.
+
 ## API Functions
 
 ### Module Functions
