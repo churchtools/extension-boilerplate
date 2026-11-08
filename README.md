@@ -6,7 +6,7 @@ This project provides a boilerplate for building your own extension for [ChurchT
 
 ### Prerequisites
 
--   Node.js (version compatible with the project)
+-   Node.js 20.19+ or 22.12+ (Node.js 24 LTS recommended)
 -   npm or yarn
 
 ### Installation
