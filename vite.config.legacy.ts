@@ -25,8 +25,6 @@ export default ({ mode }) => {
         // Use root path for legacy mode
         base: `/ccm/${key}/`,
         build: {
-            // Keep the browser targets used by Vite 7.
-            target: ['chrome107', 'edge107', 'firefox104', 'safari16'],
             rolldownOptions: {
                 input: {
                     main: resolve(import.meta.dirname, 'index-legacy.html'),

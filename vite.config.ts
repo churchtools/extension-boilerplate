@@ -64,11 +64,7 @@ export default ({ mode }) => {
         // For development, use the ccm path
         // For production library builds, use relative paths so ChurchTools can control deployment location
         base: `/extensions/${key}/`,
-        build: {
-            // Keep the browser targets used by Vite 7.
-            target: ['chrome107', 'edge107', 'firefox104', 'safari16'],
-            ...(isDevelopment ? {} : (buildMode === 'advanced' ? advancedBuildConfig : simpleBuildConfig)),
-        },
+        build: isDevelopment ? {} : (buildMode === 'advanced' ? advancedBuildConfig : simpleBuildConfig),
         plugins: isDevelopment ? [] : [
             // Copy manifest.json to dist after build
             {
