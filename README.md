@@ -27,6 +27,8 @@ Extensions are built with modern web technologies (TypeScript, React, Vue, etc.)
 
 ## Quick Start
 
+Requires Node.js 20.19+ or 22.12+ (Node.js 24 LTS recommended) and npm.
+
 ### 1. Installation
 
 ```bash

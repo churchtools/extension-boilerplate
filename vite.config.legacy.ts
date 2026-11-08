@@ -13,7 +13,7 @@ export default ({ mode }) => {
     // Read the key from manifest.json
     let key = 'default';
     try {
-        const manifestPath = resolve(__dirname, 'manifest.json');
+        const manifestPath = resolve(import.meta.dirname, 'manifest.json');
         const manifestContent = readFileSync(manifestPath, 'utf-8');
         const manifest = JSON.parse(manifestContent);
         key = manifest.key || 'default';
@@ -25,13 +25,15 @@ export default ({ mode }) => {
         // Use root path for legacy mode
         base: `/ccm/${key}/`,
         build: {
-            rollupOptions: {
+            // Keep the browser targets used by Vite 7.
+            target: ['chrome107', 'edge107', 'firefox104', 'safari16'],
+            rolldownOptions: {
                 input: {
-                    main: resolve(__dirname, 'index-legacy.html'),
+                    main: resolve(import.meta.dirname, 'index-legacy.html'),
                 },
                 output: {
                     // Inline all dynamic imports to create a single bundle
-                    inlineDynamicImports: true,
+                    codeSplitting: false,
                 },
             },
         },
@@ -58,8 +60,8 @@ export default ({ mode }) => {
             {
                 name: 'copy-manifest',
                 closeBundle() {
-                    const manifestSource = resolve(__dirname, 'manifest.json');
-                    const manifestDest = resolve(__dirname, 'dist/manifest.json');
+                    const manifestSource = resolve(import.meta.dirname, 'manifest.json');
+                    const manifestDest = resolve(import.meta.dirname, 'dist/manifest.json');
                     try {
                         copyFileSync(manifestSource, manifestDest);
                         console.log('✓ Copied manifest.json to dist/');
@@ -72,8 +74,8 @@ export default ({ mode }) => {
             {
                 name: 'rename-legacy-index',
                 closeBundle() {
-                    const distIndexLegacy = resolve(__dirname, 'dist/index-legacy.html');
-                    const distIndex = resolve(__dirname, 'dist/index.html');
+                    const distIndexLegacy = resolve(import.meta.dirname, 'dist/index-legacy.html');
+                    const distIndex = resolve(import.meta.dirname, 'dist/index.html');
                     try {
                         copyFileSync(distIndexLegacy, distIndex);
                         // remove the index-legacy.html file
