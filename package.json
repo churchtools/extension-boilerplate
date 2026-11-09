@@ -10,9 +10,12 @@
         "deploy": "npm run build && node scripts/package.js"
     },
     "devDependencies": {
-        "@churchtools/churchtools-client": "^1.4.0",
-        "@types/node": "^24.3.0",
-        "typescript": "^5.9.2",
-        "vite": "^7.1.2"
+        "@churchtools/churchtools-client": "^1.7.3",
+        "@types/node": "^24.19.2",
+        "typescript": "^6.0.3",
+        "vite": "^8.3.6"
+    },
+    "engines": {
+        "node": "^20.19.0 || >=22.12.0"
     }
 }
