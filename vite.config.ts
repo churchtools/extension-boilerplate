@@ -12,7 +12,7 @@ export default ({ mode }) => {
     // Read the key from manifest.json
     let key = 'default';
     try {
-        const manifestPath = resolve(__dirname, 'manifest.json');
+        const manifestPath = resolve(import.meta.dirname, 'manifest.json');
         const manifestContent = readFileSync(manifestPath, 'utf-8');
         const manifest = JSON.parse(manifestContent);
         key = manifest.key || 'default';
@@ -33,15 +33,15 @@ export default ({ mode }) => {
     // Disable code splitting to bundle everything together
     const simpleBuildConfig = {
         lib: {
-            entry: resolve(__dirname, 'src/index.ts'),
+            entry: resolve(import.meta.dirname, 'src/index.ts'),
             name: globalName,
             formats: ['es'],
             fileName: (format) => `extension.${format}.js`,
         },
-        rollupOptions: {
+        rolldownOptions: {
             output: {
                 // Inline all dynamic imports to create a single bundle
-                inlineDynamicImports: true,
+                codeSplitting: false,
             },
         },
     };
@@ -49,16 +49,10 @@ export default ({ mode }) => {
     // Advanced mode: Code splitting with dynamic imports
     const advancedBuildConfig = {
         lib: {
-            entry: resolve(__dirname, 'src/index.ts'),
+            entry: resolve(import.meta.dirname, 'src/index.ts'),
             name: globalName,
             formats: ['es'],
             fileName: (format) => `extension.${format}.js`,
-        },
-        rollupOptions: {
-            output: {
-                // Enable manual chunks for better code splitting
-                manualChunks: undefined,
-            },
         },
         // Enable code splitting for dynamic imports
         modulePreload: false,
@@ -76,8 +70,8 @@ export default ({ mode }) => {
             {
                 name: 'copy-manifest',
                 closeBundle() {
-                    const manifestSource = resolve(__dirname, 'manifest.json');
-                    const manifestDest = resolve(__dirname, 'dist/manifest.json');
+                    const manifestSource = resolve(import.meta.dirname, 'manifest.json');
+                    const manifestDest = resolve(import.meta.dirname, 'dist/manifest.json');
                     try {
                         copyFileSync(manifestSource, manifestDest);
                         console.log('✓ Copied manifest.json to dist/');
